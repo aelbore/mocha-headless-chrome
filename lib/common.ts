@@ -2,9 +2,10 @@ export type TestError = Error | {};
 
 export interface Options {
 	dir?: string;
+	outDir?: string;
 	args?: string[];
 	executablePath?: string;
-	file: string;
+	file?: string;
 	height?: number;
 	reporter?: string;
 	width?: number;

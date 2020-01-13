@@ -5,10 +5,10 @@ import { runner, Options } from '../lib/mocha-chrome'
   try {
 		const options: Options = {
 			dir: 'demo',
-			file: `./dist/index.html`
+			outDir: '.tmp'
 		}
 	
-		await clean('dist')	
+		await clean(options.outDir)	
 		await runner(options)
 	} catch(err) {
 		console.error(err);

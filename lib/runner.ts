@@ -7,6 +7,11 @@ import { handleConsole, configureViewport, prepareUrl } from './utils'
 import { initMocha } from './init-mocha'
 import { Options, Run } from './common'
 
+interface TranspileOptions {
+	dir?: string;
+	outDir?: string;
+}
+
 function createHtmlMarkup(outFiles: string[]) {
 	return `
 <!DOCTYPE html>
@@ -30,7 +35,10 @@ function createHtmlMarkup(outFiles: string[]) {
 	`
 }
 
-async function transpile(dir?: string) {
+async function transpile(opts?: TranspileOptions) {
+	const dir = opts?.dir ?? 'src'
+	const outDir = opts?.outDir ?? 'dist'
+
 	const specFiles = await globFiles(`./${dir}/**/*.spec.ts`)
 	const outFiles = specFiles.map(specFile => {
 		const file = specFile
@@ -51,25 +59,27 @@ async function transpile(dir?: string) {
 				globals: {
 					'chai': 'chai'
 				},
-				file: input.replace(dir, 'dist').replace('.ts', '.js')
+				file: input.replace(dir, outDir).replace('.ts', '.js')
 			}
 		}
 	}))
 
-	mkdirp('./dist')
-	await Promise.all([ build(options), writeFile('./dist/index.html', html) ])
+	mkdirp(outDir)
+	await Promise.all([ build(options), writeFile(`./${outDir}/index.html`, html) ])
 }
 
 export async function runner(opts?: Options): Promise<Run> {
-	const { width, height, reporter } = opts
+	const { width, height, reporter, dir, outDir } = opts
 
-	await transpile(opts?.dir)
+	await transpile({ dir, outDir })
 	
-	if (!fs.existsSync(opts?.file)) {
+	const file = opts?.file ? opts.file: `./${outDir}/index.html`
+
+	if (!fs.existsSync(file)) {
 		throw new Error('Test page path is required.');
 	}
 
-	const url = prepareUrl(opts.file)
+	const url = prepareUrl(file)
 
 	const browser = await puppeteer.launch({ headless: true })
 	const result = await browser.pages()
