@@ -1,35 +1,36 @@
-import * as Mocha from 'mocha'
 
-export function initMocha(reporter) {
+export function initMocha(reporter: any) {
 	console.log = (console => {
-			const log = console.log.bind(console);
-			return (...args) => args.length ? log(...args) : log('');
-	})(console);
+    const log = console.log.bind(console)
+    return (...args: any[]) => args.length ? log(...args) : log('')
+	})(console)
 
-	function shimMochaInstance(m) {
+	function shimMochaInstance(m: any) {
+		const originalReporter = m.reporter.bind(m)
+    const run = m.run.bind(m)
 
-		const originalReporter = m.reporter.bind(m);
-		let reporterIsChanged = false;
+    let reporterIsChanged = false;
 
-		m.reporter = (...args) => {
-				reporterIsChanged = true;
-				originalReporter(...args);
-		};
-
-		const run = m.run.bind(m);
+		m.reporter = (...args: any[]) => {
+      reporterIsChanged = true
+      return originalReporter(...args)
+		}
 
 		m.run = () => {
-      const all = [], pending = [], failures = [], passes = [];
+      const all = [], pending = [], failures = [], passes = []
 
-      function error(err) {
+      function error(err: any) {
         if (!err) return {};
 
-        let res = {};
-        Object.getOwnPropertyNames(err).forEach(key => res[key] = err[key]);
-        return res;
+        const res = {}
+        Object
+          .getOwnPropertyNames(err)
+          .forEach(key => res[key] = err[key]);
+        
+        return res
       }
 
-      function clean(test) {
+      function clean(test: any) {
         return {
           title: test.title,
           fullTitle: test.fullTitle(),
@@ -38,7 +39,7 @@ export function initMocha(reporter) {
         }
       }
 
-      function result(stats) {
+      function result(stats: any) {
         return {
           result: {
             stats: {
@@ -66,28 +67,27 @@ export function initMocha(reporter) {
       }
 
       !reporterIsChanged && m.setup({ 
-        /// @ts-ignore
         reporter: Mocha.reporters[reporter] || Mocha.reporters.spec 
-      });
+      })
 
       const runner = run(() => setTimeout(() => setResult.call(runner), 0))
-          .on('pass', test => { passes.push(test); all.push(test); })
-          .on('fail', test => { failures.push(test); all.push(test); })
-          .on('pending', test => { pending.push(test); all.push(test); })
-          .on('end', setResult);
+          .on('pass', (test: any) => { passes.push(test); all.push(test) })
+          .on('fail', (test: any) => { failures.push(test); all.push(test) })
+          .on('pending', (test: any) => { pending.push(test); all.push(test) })
+          .on('end', setResult)
 
       return runner;
 		}
 	}
 
-	function shimMochaProcess(M) {
-    !M.process && (M.process = {});
-    !M.process.stdout && (M.process.stdout = {});
+	function shimMochaProcess(M: any) {
+    !M.process && (M.process = {})
+    !M.process.stdout && (M.process.stdout = {})
 
-    M.process.stdout.write = data => console.log('stdout:', data);
-    M.reporters.Base.useColors = true;
-    M.reporters.none = function None(runner) {
-      M.reporters.Base.call(this, runner);
+    M.process.stdout.write = (data: any) => console.log('stdout:', data)
+    M.reporters.Base.useColors = true
+    M.reporters.none = function None(runner: any) {
+      M.reporters.Base.call(this, runner)
     }
 	}
 

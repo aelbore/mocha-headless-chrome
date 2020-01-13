@@ -1,17 +1,13 @@
 {
-  "name": "mocha-headless-chrome",
-  "version": "2.0.2",
-  "description": "Run client-side mocha tests in the command line through headless Chrome",
-  "main": "./lib/runner.js",
-  "typings": "./lib/runner.d.ts",
-  "bin": "./bin/start",
-  "engines": {
-    "node": ">=6.4.0"
+  "name": "aria-puppeter",
+  "version": "0.0.1",
+  "description": "",
+  "bin": {
+    "aria-puppeter": "./bin/aria-build.js"
   },
   "scripts": {
-    "test": "node lib/cli -f ./example/example-page.html -o ./result/result.json -c ./result/coverage.json -w 801 -H 501 -a incognito",
-    "ts": "tsc ./example/example.ts && node ./example/example.js",
-    "test.sample": "ts-node ./demo/run.ts"
+    "build": "aria-build -d -i ./lib/mocha-chrome.ts --external aria-build,puppeteer",
+    "test": "ts-node ./tools/mocha-run.ts"
   },
   "repository": {
     "type": "git",
@@ -23,27 +19,24 @@
     "puppeteer",
     "headless-chrome"
   ],
-  "author": "dima117a@gmail.com",
+  "author": "Arjay Elbore",
   "license": "MIT",
-  "types": "./runner.d.ts",
-  "bugs": {
-    "url": "https://github.com/direct-adv-interfaces/mocha-headless-chrome/issues"
+  "peerDependencies": {
+    "typescript": ">= ^3.7.0 < ^3.7.4"
   },
-  "homepage": "https://github.com/direct-adv-interfaces/mocha-headless-chrome#readme",
   "dependencies": {
-    "args": "^5.0.1",
-    "mkdirp": "^0.5.1",
-    "puppeteer": "^2.0.0"
-  },
-  "devDependencies": {
-    "@types/mocha": "^5.2.7",
-    "@types/mock-fs": "^4.10.0",
     "aria-build": "0.0.23",
     "chai": "^4.2.0",
     "mocha": "^7.0.0",
+    "puppeteer": "^2.0.0",
+    "sade": "^1.7.0"
+  },
+  "devDependencies": {
+    "@types/chai": "^4.2.7",
+    "@types/mocha": "^5.2.7",
+    "@types/node": "^13.1.4",
+    "lit-element": "^2.2.1",
     "mocha-teamcity-reporter": "^3.0.0",
-    "mock-fs": "^4.10.4",
-    "ts-node": "^8.5.4",
     "typescript": "^3.7.4"
   }
 }

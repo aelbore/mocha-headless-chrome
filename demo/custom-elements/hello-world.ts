@@ -1,4 +1,4 @@
-class HelloName extends HTMLElement {
+class HelloWorld extends HTMLElement {
 
   constructor() {
     super()
@@ -10,7 +10,7 @@ class HelloName extends HTMLElement {
   }
 
   connectedCallback() {
-    for (const prop of (this.constructor).observedAttributes) {
+    for (const prop of (this.constructor as any).observedAttributes) {
       if (this.hasAttribute(prop)) {
         this[prop] = this.getAttribute(prop)
       }
@@ -40,21 +40,4 @@ class HelloName extends HTMLElement {
 
 }
 
-customElements.define('hello-name', HelloName)
-
-describe('HelloName', () => {
-
-  before(() => {
-    const element = document.createElement('hello-name')
-    document.body.appendChild(element)
-  })
-
-  it('shoudl work (hello-name)', () => {
-    const element = document.body.querySelector('hello-name')
-    
-    assert.ok(element)
-    assert.ok(element.shadowRoot)
-    assert.ok(element.shadowRoot.querySelector('h1'))
-  })
-
-})
+customElements.define('hello-world', HelloWorld)
