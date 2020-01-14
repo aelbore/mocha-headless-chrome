@@ -1,6 +1,6 @@
 import { LitElement, html, css } from 'lit-element'
 
-class HelloWorld extends LitElement {
+class HelloWorldLit extends LitElement {
 
   message = ''
   
@@ -24,4 +24,4 @@ class HelloWorld extends LitElement {
 
 }
 
-customElements.define('hello-world-lit', HelloWorld)
+customElements.define('hello-world-lit', HelloWorldLit)

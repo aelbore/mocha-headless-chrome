@@ -2,7 +2,8 @@ import * as path from 'path'
 import * as fs from 'fs'
 import * as puppeteer from 'puppeteer'
 
-import { globFiles, build, writeFile, mkdirp } from 'aria-build'
+import { OutputChunk } from 'rollup'
+import { globFiles, readFile, writeFile, mkdirp, rollup, createTSRollupConfig, TSRollupConfig } from 'aria-build'
 import { handleConsole, configureViewport, prepareUrl } from './utils'
 import { initMocha } from './init-mocha'
 import { Options, Run } from './common'
@@ -12,7 +13,21 @@ interface TranspileOptions {
 	outDir?: string;
 }
 
-function createHtmlMarkup(outFiles: string[]) {
+async function rollupGenerate({ inputOptions, outputOptions }) {
+	const bundle = await rollup(inputOptions)
+	const { output } = await bundle.generate(outputOptions)
+	return output
+}
+
+async function buildOutput(options: TSRollupConfig) {
+	return rollupGenerate(createTSRollupConfig(options))
+}
+
+async function createHtmlMarkup(codes?: string[]) {
+	const [ mocha, chai ] = await Promise.all([
+		readFile('./node_modules/mocha/mocha.js', 'utf-8'),
+		readFile('./node_modules/chai/chai.js', 'utf-8')
+	]) 
 	return `
 <!DOCTYPE html>
 <html>
@@ -24,11 +39,12 @@ function createHtmlMarkup(outFiles: string[]) {
 </head>
 <body>
 	<div id="mocha"></div>
-	<script src="../node_modules/mocha/mocha.js"></script>
-	<script src="../node_modules/mocha-teamcity-reporter/lib/teamcityBrowser.js"></script>
-	<script src="../node_modules/chai/chai.js"></script>
+	<script>${mocha}</script>
+	<script>${chai}</script>
 	<script>mocha.setup('bdd');</script>	
-	${ outFiles.map(outFile => `<script src='${outFile}'></script>`) }
+	<script>
+		${codes.map(code => code).join('\n')}
+	</script>
 	<script>mocha.run();</script>
 </body>
 </html>	
@@ -40,32 +56,28 @@ async function transpile(opts?: TranspileOptions) {
 	const outDir = opts?.outDir ?? 'dist'
 
 	const specFiles = await globFiles(`./${dir}/**/*.spec.ts`)
-	const outFiles = specFiles.map(specFile => {
-		const file = specFile
-			.replace(path.resolve(), '.')
-			.replace('.spec.ts', '.spec.js')
-			.replace(`${path.sep}${dir}`, '')
-		return file.replace(/\\/g, '/')			
-	})
+	const inputs = specFiles.map(specFile => specFile.replace(path.resolve(), '.'))
 
-	const html = createHtmlMarkup(outFiles)
-	const options = await Promise.all(specFiles.map(specFile => {
-		const input = specFile.replace(path.resolve(), '.')
-		return {
-			input,
-			external: [ 'chai' ],
-			output: {
-				format: 'iife',
-				globals: {
-					'chai': 'chai'
-				},
-				file: input.replace(dir, outDir).replace('.ts', '.js')
+	const outputs = await buildOutput({
+		input: inputs,
+		external: [ 'chai' ],
+		output: {
+			format: 'iife',
+			globals: {
+				'chai': 'chai'
 			}
 		}
-	}))
+	})
+
+	const codes = outputs.map(output => {
+		const { code } = output as OutputChunk
+		return code
+	})
 
 	mkdirp(outDir)
-	await Promise.all([ build(options), writeFile(`./${outDir}/index.html`, html) ])
+
+	const contents = await createHtmlMarkup(codes)
+	await writeFile(`./${outDir}/index.html`, contents) 
 }
 
 export async function runner(opts?: Options): Promise<Run> {

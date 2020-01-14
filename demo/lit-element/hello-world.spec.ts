@@ -1,31 +1,32 @@
-import { expect } from 'chai'
+import { assert } from 'chai'
 
 import './hello-world'
 
 describe('HelloWorld LitElement', () => {
-  let element;
+  let element: HTMLElement
 
-  beforeEach(() => {
-    element = document.createElement('hello-world')
-    document.body.appendChild(element)
+  async function createElement(element: string) {
+    const el = document.createElement(element)
+    document.body.appendChild(el)
+
+    /// @ts-ignore
+    await el.updateComplete
+
+    return el;
+  }
+
+  beforeEach(async() => {
+    element = await createElement('hello-world-lit')
   })
 
   afterEach(() => {
     document.body.removeChild(element)
   })
 
-  it('should have element', () => {
-    expect(element).to.be.not.undefined
-  })
-
-  it('should have shadowRoot.', () => {
-    expect(element.shadowRoot).to.be.not.undefined
-  })
-
-  it('should have styles static get accessor', () => {
-    const style = element.shadowRoot.querySelector('style');
-    
-    expect(style).to.be.not.undefined
+  it('should have element', async () => {
+    assert.ok(element)
+    assert.ok(element.shadowRoot)
+    assert.ok(element.shadowRoot.querySelector('h1'))
   })
 
 })

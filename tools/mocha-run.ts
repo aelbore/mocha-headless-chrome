@@ -4,7 +4,7 @@ import { runner, Options } from '../lib/mocha-chrome'
 (async function() {
   try {
 		const options: Options = {
-			dir: 'demo',
+			dir: './demo',
 			outDir: '.tmp'
 		}
 	
